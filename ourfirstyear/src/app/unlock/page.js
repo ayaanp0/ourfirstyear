@@ -1,37 +1,39 @@
 "use client";
+
+export const dynamic = "force-dynamic";
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import CameraPreview from "../components/CameraPreview";
 
-
+/* ❤️ Floating Hearts Component */
 function FloatingHearts() {
   const [hearts, setHearts] = useState([]);
 
   useEffect(() => {
-    const generated = Array.from({ length: 18 }).map(() => ({
+    const generated = Array.from({ length: 25 }).map(() => ({
       left: Math.random() * 100,
-      size: 12 + Math.random() * 18,
-      opacity: 0.2 + Math.random() * 0.4,
+      size: 14 + Math.random() * 20,
       duration: 10 + Math.random() * 10,
-      delay: Math.random() * 10,
+      delay: Math.random() * 5,
+      opacity: 0.4 + Math.random() * 0.6,
     }));
+
     setHearts(generated);
   }, []);
 
   return (
     <>
-      {hearts.map((h, i) => (
+      {hearts.map((heart, i) => (
         <span
           key={i}
+          className="heart"
           style={{
-            position: "absolute",
-            left: `${h.left}%`,
-            bottom: "-10%",
-            fontSize: `${h.size}px`,
-            opacity: h.opacity,
-            animation: `floatUp ${h.duration}s linear infinite`,
-            animationDelay: `${h.delay}s`,
-            filter: "drop-shadow(0 0 8px rgba(255,255,255,0.5))",
-            pointerEvents: "none",
+            left: `${heart.left}%`,
+            fontSize: `${heart.size}px`,
+            animationDuration: `${heart.duration}s`,
+            animationDelay: `${heart.delay}s`,
+            opacity: heart.opacity,
           }}
         >
           ❤️
@@ -41,98 +43,125 @@ function FloatingHearts() {
   );
 }
 
-
 export default function Unlock() {
-  const [showText, setShowText] = useState(false);
   const router = useRouter();
+  const [scanning, setScanning] = useState(true);
 
+  // 🛑 SILENCE ENFORCER: Kills any music coming from other pages
   useEffect(() => {
-    const timer = setTimeout(() => setShowText(true), 1200);
+    if (typeof window !== "undefined" && window.__memoriesAudio) {
+      console.log("Stopping leftover music...");
+      window.__memoriesAudio.pause();
+      window.__memoriesAudio.currentTime = 0; // Rewind
+      window.__memoriesAudio = null; // Clear it
+    }
+  }, []);
+
+  // Camera scan duration
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setScanning(false);
+    }, 3000); // scan time
+
     return () => clearTimeout(timer);
   }, []);
 
   return (
-    <div
-      style={{ 
-        minHeight: "100vh",
-        background: "radial-gradient(circle at top, #111 0%, #000 70%)",
-        color: "white",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontFamily: "'Playfair Display', serif",
-        textAlign: "center",
-        overflow: "hidden",
-        className:"min-h-screen flex items-center justify-center bg-black text-white"
-      }}
-    >
+    <div className="min-h-screen bg-pink-400 flex items-center justify-center relative overflow-hidden">
+      {/* Floating hearts */}
       <FloatingHearts />
-      {showText && (
-        <div style={{ animation: "fadeIn 2s ease forwards" }}>
-          <h1
-            style={{
-              fontSize: "42px",
-              marginBottom: "12px",
-              animation: "heartbeat 3s ease-in-out infinite",
-            }}
-          >
-            That’s a really pretty face…
-          </h1>
 
-          <p
-            style={{
-              fontSize: "18px",
-              opacity: 0.8,
-              marginBottom: "40px",
-            }}
-          >
-            Must be Saniya.
-          </p>
-
-          <button
-            onClick={() => router.push("/welcome")}
-             className="px-8 py-3 rounded-full bg-white text-black text-lg"
-            style={{
-              padding: "12px 36px",
-              borderRadius: "999px",
-              border: "none",
-              background: "white",
-              color: "black",
-              fontSize: "16px",
-              cursor: "pointer",
-              transition: "all 0.3s ease",
-            }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.transform = "scale(1.05)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.transform = "scale(1)")
-            }
-          >
-            Enter
-          </button>
+      {/* Camera */}
+      {scanning && (
+        <div className="absolute z-20">
+          <CameraPreview />
         </div>
       )}
 
+      {/* Login UI */}
+      {!scanning && (
+        <div className="z-30 bg-white/30 backdrop-blur-xl rounded-3xl px-10 py-8 text-center">
+          <h1 className="text-3xl font-serif text-white mb-2">
+            That’s a really pretty face…
+          </h1>
+          <p className="text-white/90 mb-6">Must be Saniya.</p>
+
+          <button
+  onClick={() => router.push("/welcome")}
+  className="enter-btn"
+>
+  <span className="enter-text">Enter</span>
+  <span className="enter-heart">💖</span>
+</button>
+
+        </div>
+      )}
+
+      {/* CSS */}
       <style jsx>{`
-        @keyframes fadeIn {
+        .enter-btn {
+  position: relative;
+  margin-top: 20px;
+  padding: 14px 42px;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(135deg, #ffffff, #ffe6f0);
+  color: #ff4d88;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: Georgia, serif;
+  cursor: pointer;
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.2),
+    inset 0 0 0 2px rgba(255, 77, 136, 0.2);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.35s ease;
+}
+
+.enter-btn:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.25),
+    inset 0 0 0 2px rgba(255, 77, 136, 0.35);
+}
+
+.enter-btn:active {
+  transform: scale(0.96);
+}
+
+.enter-text {
+  letter-spacing: 0.5px;
+}
+
+.enter-heart {
+  font-size: 18px;
+  animation: pulse 1.6s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.25);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+}
+
+
+        @keyframes floatUp {
           from {
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to {
-            opacity: 1;
             transform: translateY(0);
           }
-        }
-
-        @keyframes heartbeat {
-          0%,
-          100% {
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.15);
-          }
-          50% {
-            text-shadow: 0 0 25px rgba(255, 255, 255, 0.35);
+          to {
+            transform: translateY(-110vh);
           }
         }
       `}</style>

@@ -7,6 +7,7 @@ export default function Welcome() {
   const router = useRouter();
   const [hearts, setHearts] = useState([]);
 
+  // ❤️ Floating hearts animation
   useEffect(() => {
     const interval = setInterval(() => {
       setHearts((prev) => [
@@ -23,17 +24,37 @@ export default function Welcome() {
     return () => clearInterval(interval);
   }, []);
 
-   return (
-    <div className="relative fullscreen bg-pink-400 overflow-hidden">
+  // 🔇 STOP any leftover memories music when Welcome loads
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.__memoriesAudio) {
+      window.__memoriesAudio.pause();
+      window.__memoriesAudio.currentTime = 0;
+      window.__memoriesAudio = null;
+    }
+  }, []);
 
+  // ➡️ Go to memories (music starts THERE, not here)
+  const goToMemories = () => {
+    router.push("/memories");
+  };
+
+  return (
+    <div className="relative fullscreen bg-pink-400 overflow-hidden">
       {/* Floating hearts */}
       <div className="absolute inset-0 pointer-events-none">
-       <span className="heart delay-0" style={{ left: "10%" }}>💗</span>
-      <span className="heart delay-1" style={{ left: "25%" }}>💖</span>
-      <span className="heart delay-2" style={{ left: "40%" }}>💞</span>
-      <span className="heart delay-3" style={{ left: "60%" }}>💓</span>
-      <span className="heart delay-4" style={{ left: "80%" }}>💕</span>
-
+        {hearts.map((h) => (
+          <span
+            key={h.id}
+            className="heart"
+            style={{
+              left: `${h.left}%`,
+              fontSize: `${h.size}px`,
+              animationDuration: `${h.duration}s`,
+            }}
+          >
+            💗
+          </span>
+        ))}
       </div>
 
       {/* Centered content */}
@@ -42,23 +63,55 @@ export default function Welcome() {
           Welcome, my love 🤍
         </h1>
 
-        <div className="flex gap-6 justify-center">
+        <div className="flex gap-8 justify-center mt-4">
+          {/* Letter */}
           <a
             href="/letter"
-            className="px-8 py-3 bg-white text-pink-500 rounded-full font-semibold text-lg hover:scale-105 transition"
+            className="btn-love group"
+            aria-label="Read the letter"
           >
-            Read the Letter 💌
+            <span className="btn-content">
+              <span className="icon icon-default">💌</span>
+              <span className="icon icon-hover">❤️</span>
+              <span className="label">Read the Letter</span>
+            </span>
+            <span className="shimmer"></span>
           </a>
 
-          <a
-            href="/memories"
-            className="px-8 py-3 bg-white text-pink-500 rounded-full font-semibold text-lg hover:scale-105 transition"
+          {/* Memories */}
+          <button
+            onClick={goToMemories}
+            className="btn-love group"
+            aria-label="Relive memories"
           >
-            Relive Memories 📸
-          </a>
+            <span className="btn-content">
+              <span className="icon icon-default">📸</span>
+              <span className="icon icon-hover">💞</span>
+              <span className="label">Relive Memories</span>
+            </span>
+            <span className="shimmer"></span>
+          </button>
         </div>
       </div>
 
+      {/* Styles */}
+      <style jsx>{`
+        .heart {
+          position: absolute;
+          bottom: -20px;
+          animation: floatUp linear infinite;
+          pointer-events: none;
+        }
+
+        @keyframes floatUp {
+          from {
+            transform: translateY(0);
+          }
+          to {
+            transform: translateY(-110vh);
+          }
+        }
+      `}</style>
     </div>
   );
 }
